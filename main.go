@@ -38,5 +38,15 @@ func main() {
 		outputPath = strings.TrimSuffix(outputPath, outputExt) + "_out" + outputExt
 	}
 	
-	// Processing
+	// Ensure that the input and output paths are valid.
+	valid, err := validate(inputPath, outputPath)
+	if !valid {
+		fmt.Printf("Validation error: " + err.Error() + ".\n")
+		return
+	}
+
+	// Process the file and save its result to the output file.
+	save(convert(inputPath), outputPath)
+	fmt.Printf("Done.\n")
+	return
 }
