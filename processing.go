@@ -104,7 +104,7 @@ func save(output []string, outputPath string) {
 	writer := bufio.NewWriter(outputFile)
 	
 	for _, outputLine := range output {
-		writer.WriteString(outputLine + "\n")
+		writer.WriteString(outputLine + "\r\n")
 	}
 	
 	writer.Flush()
