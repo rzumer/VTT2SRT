@@ -46,7 +46,7 @@ func main() {
 	}
 
 	// Process the file and save its result to the output file.
-	save(convert(inputPath), outputPath)
+	save(convert(parseInput(inputPath)), outputPath)
 	fmt.Printf("Done.\n")
 	return
 }

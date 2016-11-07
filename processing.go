@@ -46,23 +46,24 @@ func validate(inputPath string, outputPath string) (bool, error) {
 	return true, nil
 }
 
-/*
-* Converts a file at the given path from WebVTT format to SubRip Text format, 
-* based on the WebVTT parsing algorithm specification and the SubRip Text documentation.
-*/
-func convert(inputPath string) []string { 
-	inputFile, _ := os.Open(inputPath)
-	defer inputFile.Close()
+func parseInput(inputPath string) []string {
+	parser, _ := parsing.NewParser(inputPath)
 	
-	scanner := bufio.NewScanner(inputFile)
+	return parser.ParseAllCues()
+}
+
+/*
+* Converts parsed WebVTT format lines to the SubRip Text format. 
+* Based on the WebVTT parsing algorithm specification and the SubRip Text documentation.
+*/
+func convert(input []string) []string { 
 	counter := 1
 	output := make([]string, 0)
 	
-	for scanner.Scan() {
-		text := scanner.Text()
+	for i, line := range input {
 		
 		// Move to the first line of the next cue.
-		if !strings.Contains(text, " --> ") {
+		if !strings.Contains(line, " --> ") {
 			continue
 		}
 		
@@ -70,7 +71,7 @@ func convert(inputPath string) []string {
 		output = append(output, strconv.Itoa(counter))
 		
 		// Split the timestamps expected to be on the line.
-		timestamps := strings.Split(text, " --> ")
+		timestamps := strings.Split(line, " --> ")
 		
 		// If two timestamps are not found on the line, keep searching.
 		if len(timestamps) < 2 {
@@ -83,11 +84,10 @@ func convert(inputPath string) []string {
 		output = append(output, convertedLine)
 		
 		// Output each line for the current subtitle.
-		for scanner.Scan() {
-			text = scanner.Text()
-			output = append(output, text)
+		for _, cueLine := range input[i+1:] {
+			output = append(output, cueLine)
 			
-			if(text == "") {
+			if(cueLine == "") {
 				break;
 			}
 		}

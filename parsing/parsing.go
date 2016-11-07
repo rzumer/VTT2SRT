@@ -43,12 +43,97 @@ func (parser *Parser) Valid() bool {
 	return true
 }
 
-func (parser *Parser) ParseHeader() []string {
-	return nil
+func (parser *Parser) ParseAllCues() []string {
+	output := make([]string, 0)
+	
+	// Skip the header.
+	parser.ParseHeader()
+	
+	// Parse each cue until the end of the file.
+	for {
+		
+		// Skip empty lines between blocks.
+		for char, err := parser.input.Peek(1); err == nil && char[0] == '\n'; {
+			parser.readLine()
+		}
+		
+		// Parse the next cue.
+		cue, _ := parser.ParseCue()
+		output = append(output, cue...)
+		
+		// Stop when the reader reaches the end of the file.
+		// Otherwise, add an empty line to separate cues.
+		if peeked, _ := parser.input.Peek(1); len(peeked) == 0 {
+			break
+		} else {
+			output = append(output, "")
+		}
+	}
+	
+	return output
 }
 
-func (parser *Parser) ParseCue() []string {
-	return nil
+func (parser *Parser) ParseHeader() ([]string, error) {
+	if char, _ := parser.input.Peek(1); char[0] == '\n' {
+		return nil, nil
+	}
+	
+	return parser.collectBlock(true)
+}
+
+func (parser *Parser) ParseCue() ([]string, error) {
+	return parser.collectBlock(false)
+}
+
+func (parser *Parser) collectBlock(inHeader bool) ([]string, error) {
+	var err error
+	cueText := make([]string, 0)
+	lineCount := 0
+	seenEOF := false
+	seenArrow := false
+	
+	for {
+		line, err := parser.readLine()
+		line = strings.TrimSpace(line)
+		lineCount++
+		
+		if err != nil {
+			seenEOF = true
+		}
+		
+		if strings.Contains(line, "-->") {
+			if !inHeader && (lineCount == 1 || (lineCount == 2 && !seenArrow)) {
+				seenArrow = true
+				cueText = append(cueText, line)
+			} else {
+				break
+			}
+		} else if line == "" {
+			break
+		} else {
+			if !inHeader && lineCount == 2 {
+				// Process stylesheet or region (currently unsupported).
+				if strings.HasPrefix(line, "STYLE") {
+					break
+				} else if strings.HasPrefix(line, "REGION") {
+					break
+				}
+			}
+			
+			// Append a line of content.
+			cueText = append(cueText, line)
+		}
+		
+		if seenEOF {
+			break
+		}
+	}
+	
+	if len(cueText) > 0 {
+		return cueText, err
+	}
+	
+	return nil, err
 }
 
 func (parser *Parser) readLine() (string, error) {
