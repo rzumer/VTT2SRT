@@ -59,8 +59,8 @@ func convert(inputPath string) []string {
 	for scanner.Scan() {
 		text := scanner.Text()
 		
-		// Skip header content and consecutive empty lines.
-		if(text == "WEBVTT" || text == "") {
+		// Move to the first line of the next cue.
+		if !strings.Contains(text, " --> ") {
 			continue
 		}
 		
