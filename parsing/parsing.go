@@ -94,7 +94,7 @@ func (parser *Parser) collectBlock(inHeader bool) ([]string, error) {
 	
 	for {
 		line, err := parser.readLine()
-		line = strings.TrimSpace(line)
+		line = strings.TrimRight(line, "\n")
 		lineCount++
 		
 		if err != nil {
