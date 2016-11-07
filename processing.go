@@ -9,6 +9,7 @@ import(
 	"strings"
 	"regexp"
 	"fmt"
+	"github.com/rzumer/vtt2srt/parsing"
 )
 
 func validate(inputPath string, outputPath string) (bool, error) {
@@ -30,26 +31,27 @@ func validate(inputPath string, outputPath string) (bool, error) {
 
 	// Ensure that the input file is readable.
 	inputFile, readError := os.Open(inputPath)
+	defer inputFile.Close()
 	
 	if readError != nil {
 		return false, errors.New("input file access error")
 	}
 	
-	defer inputFile.Close()
-	
 	// Ensure that the first line of the file is "WEBVTT".
-	scanner := bufio.NewScanner(inputFile)
-	
-	if !scanner.Scan() || scanner.Text() != "WEBVTT" {
+	parser, _ := parsing.NewParser(inputPath)
+	if !parser.Valid() {
 		return false, errors.New("input file is not a valid VTT file")
 	}
 	
 	return true, nil
 }
 
-func convert(inputPath string) []string {
+/*
+* Converts a file at the given path from WebVTT format to SubRip Text format, 
+* based on the WebVTT parsing algorithm specification and the SubRip Text documentation.
+*/
+func convert(inputPath string) []string { 
 	inputFile, _ := os.Open(inputPath)
-	
 	defer inputFile.Close()
 	
 	scanner := bufio.NewScanner(inputFile)
