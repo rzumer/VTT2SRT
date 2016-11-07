@@ -21,11 +21,7 @@ func NewParser(inputPath string) (*Parser, error) {
 
 // Parses the first line of the file to ensure that it is a valid WebVTT file.
 func (parser *Parser) Valid() bool {
-	line, err := parser.readLine()
-	
-	if err != nil {
-		return false
-	}
+	line, _ := parser.readLine()
 	
 	if len(line) < 6 {
 		return false
